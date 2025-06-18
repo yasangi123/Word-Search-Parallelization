@@ -1,0 +1,6 @@
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-18 22:42:59","test.txt","the;man;fan;can;a",35708,0.2628
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-18 22:51:22","test.txt","the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the",763200,1.9778
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-18 22:53:40","test.txt","the;man;fan;can;a",39116,0.1960
