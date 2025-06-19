@@ -8,3 +8,7 @@ timestamp,filename,phrases,total_lines,total_bytes,wall_s,cpu_s,lines_per_s,mb_p
 "2025-06-19 11:33:38","test.txt","the;have;they;you;file;me;a;and",527262,29341483,7.438489,1.094254,70882.94,3.76,121347
 timestamp,filename,phrases,total_matches,time_s
 "2025-06-19 11:37:58","test.txt","the;a;an;sample;file;this",91680,1.0529
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 14:41:28","test.txt","the;a;an;can;you;and",102240,2.3510
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 20:03:06","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.9579

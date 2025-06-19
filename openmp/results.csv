@@ -4,3 +4,17 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-18 22:51:22","test.txt","the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the;the",763200,1.9778
 timestamp,filename,phrases,total_matches,time_s
 "2025-06-18 22:53:40","test.txt","the;man;fan;can;a",39116,0.1960
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 12:12:39","cuda.txt","the;can;if;let;a;an;the;cuda;nvcc",17823,0.0249
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 20:32:49","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.2679
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 20:33:39","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.2364
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 20:34:10","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.2162
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 20:34:36","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.1824
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 21:18:07","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.2813
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-19 21:21:34","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.1753
