@@ -162,7 +162,7 @@ int main(void) {
         tok = strtok(NULL, ",");
     }
     if (phrase_count == 0) {
-        printf("No valid phrases entered. Exiting.\n");
+        printf("No valid phrases entered. Exiting..\n");
         return 0;
     }
 

@@ -179,7 +179,7 @@ int main(void) {
         if (*tok) phrases[pc++] = tok;
         tok = strtok_r(NULL, ",", &saveptr);
     }
-    if (pc==0) { printf("No phrases entered. Bye.\n"); return 0; }
+    if (pc==0) { printf("No valid phrases entered. Exiting..\n"); return 0; }
 
     printf("Loaded %d threads. Starting search...\n",
             omp_get_max_threads());
