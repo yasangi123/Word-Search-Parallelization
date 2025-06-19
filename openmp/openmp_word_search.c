@@ -11,7 +11,7 @@
 #define MAX_INPUT_SIZE 4096       // Buffer for user input
 #define NUM_THREADS 8             // Hard-code 8 threads for OpenMP
 
-// ——— Utility: clean up text ————————————————————————————————————————
+// ——— clean up text ————————————————————————————————————————
 // Strips punctuation and lowercases letters, in-place.
 void normalize(char *s) {
     char *dst = s;
@@ -24,7 +24,7 @@ void normalize(char *s) {
     *dst = '\0';
 }
 
-// ——— Utility: split a line into words —————————————————————————————
+// ——— split a line into words —————————————————————————————
 // Thread-safe tokenization using strtok_r. Returns the number of words.
 int tokenize(char *line, char *words[], int maxw) {
     int n = 0;
