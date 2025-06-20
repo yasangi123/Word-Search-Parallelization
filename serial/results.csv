@@ -12,3 +12,7 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-19 14:41:28","test.txt","the;a;an;can;you;and",102240,2.3510
 timestamp,filename,phrases,total_matches,time_s
 "2025-06-19 20:03:06","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.9579
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-20 02:17:33","dl.pdf","the;a;learning;has;me;new;life;can;ai",455,0.3684
+timestamp,filename,phrases,total_matches,time_s
+"2025-06-20 10:50:12","test.txt","the;and;has;is;are;then;so;a;an",109975,1.1781
