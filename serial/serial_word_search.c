@@ -9,7 +9,7 @@
 #define MAX_WORDS_PER_LINE  512    // max tokens in a single line
 #define MAX_INPUT_SIZE      4096   // buffer for user input
 
-// ——— Utility: clean up a string in-place ———————————————————————————————
+// ——— clean up a string in-place ———————————————————————————————
 // Removes punctuation, lowercases letters, keeps spaces.
 void normalize(char* s) {
     char* dst = s;
@@ -20,7 +20,7 @@ void normalize(char* s) {
     *dst = '\0';
 }
 
-// ——— Utility: split a string into words ———————————————————————————————
+// ——— split a string into words ———————————————————————————————
 // Modifies 'line' by inserting '\0' at delimiters, returns word count.
 int tokenize(char* line, char* words[], int maxw) {
     int n = 0;
