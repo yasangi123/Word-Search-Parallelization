@@ -16,3 +16,5 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-20 02:17:33","dl.pdf","the;a;learning;has;me;new;life;can;ai",455,0.3684
 timestamp,filename,phrases,total_matches,time_s
 "2025-06-20 10:50:12","test.txt","the;and;has;is;are;then;so;a;an",109975,1.1781
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-16 23:43:59","test.txt","as;am;are;is;the;file",44452,1.0100

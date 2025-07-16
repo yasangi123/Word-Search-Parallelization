@@ -1,0 +1,4 @@
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-16 23:40:17","test.txt","as;am;are;is;the;file",44452,7.7736
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-16 23:54:28","test.txt","as;am;are;is;the;file",44452,6.4625
