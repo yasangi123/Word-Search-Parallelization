@@ -28,3 +28,9 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-07-18 13:37:13","test.txt","will;this;is",5136,0.3614
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-18 13:37:43","test.txt","will;this;is",5071,0.3819
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:40:18","test.txt","will;this;is",12761,0.9027
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:40:58","test.txt","will;this;is",12761,0.9826
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:41:39","test.txt","will;this;is",12761,1.2320
