@@ -12,3 +12,19 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-07-18 10:53:06","test.txt","will;this;is",5248,0.0036
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-18 11:18:38","test.txt","will;this;is",12761,0.7518
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:24:53","test.txt","will;this;is",12761,0.7816
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:30:56","test.txt","will;this;is",12761,0.7800
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:31:21","test.txt","will;this;is",12761,0.7439
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:35:37","test.txt","will;this;is",5101,0.5345
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:36:17","test.txt","will;this;is",5112,0.2146
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:36:40","test.txt","will;this;is",5022,0.2962
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:37:13","test.txt","will;this;is",5136,0.3614
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 13:37:43","test.txt","will;this;is",5071,0.3819
