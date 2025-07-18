@@ -20,3 +20,5 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-19 21:21:34","test.txt","the;ban;none;man;hen;jim;yasangi",7632,0.1753
 timestamp,filename,phrases,total_matches,time_s
 "2025-06-20 10:51:04","test.txt","the;and;has;is;are;then;so;a;an",109975,0.2728
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 11:20:15","test.txt","will;this;is",12761,0.1576

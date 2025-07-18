@@ -111,7 +111,16 @@ void search_and_log(const char* filename, char* phrases[], int pc) {
     fclose(csv);
 }
 
-int main() {
+int main(int argc, char** argv) {
+    // --- New: allow user to override CUDA threads-per-block ---
+    int threadsPerBlock = 256;
+    if (argc > 1) {
+        int t = atoi(argv[1]);
+        if (t > 0) threadsPerBlock = t;
+    }
+    // (in this serial-only version we don't actually launch any kernels,
+    // but if you do, you'd use threadsPerBlock in <<<>>>)
+
     char filepath[MAX_INPUT_SIZE], phrase_line[MAX_INPUT_SIZE];
     char* phrases[MAX_PHRASES];
     int pc = 0;
@@ -134,7 +143,10 @@ int main() {
     }
     if (pc == 0) return 0;
 
-    // We call serial search directly — no GPU divergence here
+    // New printf:
+    printf("Using %d threads per block. Starting search...\n", threadsPerBlock);
+
+    // perform the search
     search_and_log(filepath, phrases, pc);
     return 0;
 }
