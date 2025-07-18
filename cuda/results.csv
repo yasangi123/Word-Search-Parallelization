@@ -2,3 +2,41 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-07-16 23:40:17","test.txt","as;am;are;is;the;file",44452,7.7736
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-16 23:54:28","test.txt","as;am;are;is;the;file",44452,6.4625
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-17 10:17:09","test.txt","am;is;are;was;were",10176,5.2946
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-17 22:01:53","test.txt","am;is;are;was;were",10176,5.4969
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 02:10:18","test.txt","am;is;are",7632,3.5089
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:19:24","test.txt","am;is;are;was;were",0,0.2622
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:21:56","test.txt","am;is;are;was;were",4192,0.0582
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:24:34","test.txt","am;is;are;was;were",4192,0.4798
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:28:30","test.txt","am;is;are;was;were",4192,0.3084
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:38:05","test.txt","am;is;are;was;were",4192,0.0618
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:44:53","test.txt","am;is;are;was;were",4192,0.0630
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:51:07","test.txt","am;is;are;was;were",4192,0.0564
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:59:36","test.txt","am;is;are;was;were",4192,0.2668
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:59:57","test.txt","the;is;by",7336,0.0316
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:00:40","test.txt","the;can;have;this;you",6288,0.0507
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:09:04","test.txt","the;can;have;you;this",0,0.1668
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:15:45","test.txt","you;can;have;this;the",0,0.0708
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:22:08","test.txt","you;can;have;this",5184,1.3099
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:46:23","test.txt","you;can;have;this",3088,0.2407
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:02:33","test.txt","will;this;is",5248,0.1705
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:13:20","test.txt","will;this;is",12761,0.7876

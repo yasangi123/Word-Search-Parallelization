@@ -18,3 +18,11 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-20 10:50:12","test.txt","the;and;has;is;are;then;so;a;an",109975,1.1781
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-16 23:43:59","test.txt","as;am;are;is;the;file",44452,1.0100
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 08:20:33","test.txt","am;is;are;was;were",10176,0.9662
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:05:52","test.txt","the;can;have;this;you",15073,1.0816
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 09:26:49","test.txt","you;can;have;this",7441,2.6167
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:03:16","test.txt","will;this;is",12761,0.8685

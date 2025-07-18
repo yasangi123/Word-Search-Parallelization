@@ -1,0 +1,14 @@
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:32:38","test.txt","will;this;is",5278,0.0013
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:35:59","test.txt","will;this;is",5117,0.0049
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:41:13","test.txt","will;this;is",5096,0.0001
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:45:44","test.txt","will;this;is",5135,0.0257
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:50:39","test.txt","will;this;is",5059,0.0022
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 10:53:06","test.txt","will;this;is",5248,0.0036
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 11:18:38","test.txt","will;this;is",12761,0.7518
