@@ -9,7 +9,7 @@
 #define MAX_PHRASES 100           // Max number of phrases to search
 #define MAX_WORDS_PER_LINE 512    // Max tokens per line
 #define MAX_INPUT_SIZE 4096       // Buffer for user input
-#define NUM_THREADS 8             
+#define NUM_THREADS 8        
 
 // ——— clean up text ————————————————————————————————————————
 // Strips punctuation and lowercases letters, in-place.

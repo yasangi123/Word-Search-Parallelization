@@ -22,3 +22,11 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-06-20 10:51:04","test.txt","the;and;has;is;are;then;so;a;an",109975,0.2728
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-18 11:20:15","test.txt","will;this;is",12761,0.1576
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 20:54:24","test.txt","will;this;is",12761,0.1878
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 20:58:33","test.txt","will;this;is",12761,0.5054
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 21:00:22","test.txt","will;this;is",12761,0.4827
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-18 21:01:33","test.txt","will;this;is",12761,0.1666
