@@ -1,3 +1,7 @@
+// cuda.cu
+// CUDA-accelerated phrase search: read a text file, normalize/tokenize on host,
+// then in parallel scan each line for all phrases on the GPU.
+// Usage: nvcc -O2 cuda.cu -o cuda && ./cuda [threadsPerBlock]
 
 #include <cstdio>
 #include <cstdlib>
@@ -6,239 +10,222 @@
 #include <ctime>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <fstream>
+#include <sstream>
 #include <cuda_runtime.h>
 
-#define MAX_LINES             200000
-#define MAX_PHRASES           100
-#define MAX_TOKENS_PER_LINE   512
-#define MAX_TOKENS_PER_PHRASE 64
-#define MAX_INPUT_SIZE        4096
-#define CSV_FILENAME          "results.csv"
+#define MAX_INPUT_SIZE 4096
 
-// Device‐side constants
-__constant__ int d_lineCount;
-__constant__ int d_phraseCount;
-__constant__ int d_maxLineTokens;
-__constant__ int d_maxPhraseTokens;
+// normalize in-place: keep only letters/spaces, lowercase
+void normalize(std::string &s) {
+    size_t dst = 0;
+    for (size_t i = 0; i < s.size(); ++i) {
+        unsigned char c = (unsigned char)s[i];
+        if (isalpha(c) || isspace(c))
+            s[dst++] = tolower(c);
+    }
+    s.resize(dst);
+}
 
-// GPU kernel: one thread per line, integer‐ID compare
-__global__ void tokenSearchKernel(
-    const int *lineTokens,    // [lineCount][maxLineTokens]
-    const int *lineLens,      // [lineCount]
-    const int *phraseTokens,  // [phraseCount][maxPhraseTokens]
-    const int *phraseLens,    // [phraseCount]
-    int *counts               // [phraseCount]
+// split comma-separated phrases (host)
+std::vector<std::string> split_phrases(const std::string &line) {
+    std::vector<std::string> out;
+    std::stringstream ss(line);
+    std::string tok;
+    while (std::getline(ss, tok, ',')) {
+        size_t a = tok.find_first_not_of(" \t");
+        size_t b = tok.find_last_not_of(" \t");
+        if (a != std::string::npos)
+            out.push_back(tok.substr(a, b - a + 1));
+    }
+    return out;
+}
+
+// GPU kernel: each thread scans one line against all phrases
+__global__ void searchKernel(
+    const char* d_lines,
+    const size_t* d_lineOff,
+    const int*    d_lineLen,
+    const char*   d_phrases,
+    const size_t* d_phrOff,
+    const int*    d_phrLen,
+    int lineCount,
+    int phrCount,
+    int* d_counts
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= d_lineCount) return;
+    if (idx >= lineCount) return;
 
-    const int *lt = lineTokens + idx * d_maxLineTokens;
-    int llen = lineLens[idx];
+    const char* line = d_lines + d_lineOff[idx];
+    int L = d_lineLen[idx];
 
-    for (int p = 0; p < d_phraseCount; ++p) {
-        const int *pt = phraseTokens + p * d_maxPhraseTokens;
-        int plen = phraseLens[p];
-        bool found = false;
-        for (int i = 0; i + plen <= llen; ++i) {
+    for (int p = 0; p < phrCount; ++p) {
+        const char* phr = d_phrases + d_phrOff[p];
+        int P = d_phrLen[p];
+        for (int i = 0; i + P <= L; ++i) {
+            // ensure word boundaries
+            if ((i > 0 && line[i-1] != ' ') || (i+P < L && line[i+P] != ' '))
+                continue;
             bool ok = true;
-            #pragma unroll
-            for (int j = 0; j < plen; ++j) {
-                if (lt[i+j] != pt[j]) { ok = false; break; }
+            for (int j = 0; j < P; ++j) {
+                if (line[i+j] != phr[j]) { ok = false; break; }
             }
-            if (ok) { found = true; break; }
+            if (ok) {
+                atomicAdd(&d_counts[p], 1);
+                break;
+            }
         }
-        if (found) atomicAdd(&counts[p], 1);
     }
 }
 
 int main(int argc, char** argv) {
-    // 1) Read inputs
-    char filepath[MAX_INPUT_SIZE], phrase_line[MAX_INPUT_SIZE];
+    int threadsPerBlock = 256;
+    if (argc > 1) {
+        int t = atoi(argv[1]);
+        if (t > 0) threadsPerBlock = t;
+    }
+
+    // — host input —
+    char filepath[MAX_INPUT_SIZE];
     printf("Enter path to text file: ");
-    if (!fgets(filepath,sizeof filepath,stdin)) return 0;
-    filepath[strcspn(filepath,"\r\n")] = '\0';
+    if (!fgets(filepath, sizeof filepath, stdin)) return 1;
+    filepath[strcspn(filepath, "\r\n")] = '\0';
 
+    char phrase_line[MAX_INPUT_SIZE];
     printf("Enter search phrases, comma-separated:\n");
-    if (!fgets(phrase_line,sizeof phrase_line,stdin)) return 0;
-    phrase_line[strcspn(phrase_line,"\r\n")] = '\0';
+    if (!fgets(phrase_line, sizeof phrase_line, stdin)) return 1;
+    phrase_line[strcspn(phrase_line, "\r\n")] = '\0';
 
-    // 2) CPU normalize & tokenize words→IDs
-    std::unordered_map<std::string,int> vocab;
-    vocab.reserve(200000);
-    int nextId = 1;  // reserve 0 for padding
-    auto normalize = [&](std::string &s){
-        for (auto &c:s) {
-            if (isalpha((unsigned char)c)) c = tolower(c);
-            else if (isspace((unsigned char)c)) /* keep */;
-            else c = ' ';  // drop like CPU normalize
-        }
-    };
-    auto tokenizeIds = [&](const std::string &s){
-        std::vector<int> ids;
-        ids.reserve(MAX_TOKENS_PER_LINE);
-        size_t i=0,n=s.size();
-        while (i<n) {
-            while (i<n && isspace((unsigned char)s[i])) ++i;
-            if (i>=n) break;
-            size_t j=i;
-            while (j<n && !isspace((unsigned char)s[j])) ++j;
-            std::string w = s.substr(i,j-i);
-            auto it = vocab.find(w);
-            if (it==vocab.end()) it = vocab.emplace(w,nextId++).first;
-            ids.push_back(it->second);
-            i=j;
-        }
-        return ids;
-    };
-
-    // 3) Read file lines
-    std::vector<std::vector<int>> lines;
-    lines.reserve(100000);
-    FILE* f = fopen(filepath,"r");
-    if (!f) { perror("fopen"); return 1; }
-    char buf[MAX_INPUT_SIZE];
-    while (lines.size()<MAX_LINES && fgets(buf,sizeof buf,f)) {
-        std::string s(buf);
-        normalize(s);
-        lines.push_back(tokenizeIds(s));
+    auto phrases = split_phrases(phrase_line);
+    int pc = (int)phrases.size();
+    if (pc == 0) {
+        fprintf(stderr, "No valid phrases entered. Exiting.\n");
+        return 1;
     }
-    fclose(f);
-    int lineCount = lines.size();
-    if (lineCount==0) { printf("No lines read.\n"); return 0; }
 
-    // 4) Parse & tokenize phrases (keep original strings to print)
-    std::vector<std::string> phraseStrs;
-    std::vector<std::vector<int>> phrases;
-    {
-        char *saveptr=nullptr;
-        for (char* tok=strtok(phrase_line,"," ); tok && phrases.size()<MAX_PHRASES;
-             tok=strtok(nullptr,"," )) {
-            while(*tok==' ') ++tok;
-            char* end=tok+strlen(tok)-1;
-            while(end>tok&&*end==' ') *end--='\0';
-            if (!*tok) continue;
-            std::string ps(tok);
-            normalize(ps);
-            auto ids = tokenizeIds(ps);
-            if (!ids.empty()) {
-                phraseStrs.push_back(std::string(tok));
-                phrases.push_back(ids);
-            }
-        }
+    // — read & normalize file lines —
+    std::ifstream infile(filepath);
+    if (!infile) {
+        perror("Error opening file");
+        return 1;
     }
-    int phraseCount = phrases.size();
-    if (phraseCount==0) { printf("No phrases.\n"); return 0; }
-
-    // 5) Determine max token lengths
-    int maxLineTokens=0;
-    std::vector<int> lineLens(lineCount);
-    for (int i=0;i<lineCount;++i) {
-        int L = lines[i].size();
-        lineLens[i]=L;
-        if (L>maxLineTokens) maxLineTokens=L;
+    std::vector<std::string> lines;
+    std::string raw;
+    while (std::getline(infile, raw)) {
+        normalize(raw);
+        if (!raw.empty()) lines.push_back(raw);
     }
-    if (maxLineTokens>MAX_TOKENS_PER_LINE) maxLineTokens=MAX_TOKENS_PER_LINE;
-
-    int maxPhraseTokens=0;
-    std::vector<int> phraseLens(phraseCount);
-    for (int i=0;i<phraseCount;++i) {
-        int L=phrases[i].size();
-        phraseLens[i]=L;
-        if (L>maxPhraseTokens) maxPhraseTokens=L;
+    infile.close();
+    int LC = (int)lines.size();
+    if (LC == 0) {
+        fprintf(stderr, "No lines to process. Exiting.\n");
+        return 1;
     }
-    if (maxPhraseTokens>MAX_TOKENS_PER_PHRASE) maxPhraseTokens=MAX_TOKENS_PER_PHRASE;
 
-    // 6) Pack into flat host arrays (pad with 0)
-    size_t lb = size_t(lineCount)*maxLineTokens;
-    size_t pb = size_t(phraseCount)*maxPhraseTokens;
-    int *h_lineTokens   = (int*)calloc(lb, sizeof(int));
-    int *h_phraseTokens = (int*)calloc(pb, sizeof(int));
-    for (int i=0;i<lineCount;++i)
-      for (int j=0;j<lineLens[i] && j<maxLineTokens;++j)
-        h_lineTokens[i*maxLineTokens + j] = lines[i][j];
-    for (int i=0;i<phraseCount;++i)
-      for (int j=0;j<phraseLens[i] && j<maxPhraseTokens;++j)
-        h_phraseTokens[i*maxPhraseTokens + j] = phrases[i][j];
+    // — build flat buffers & offsets —
+    std::vector<size_t> lineOff(LC), phrOff(pc);
+    std::vector<int>    lineLen(LC),  phrLen(pc);
+    size_t totL = 0, totP = 0;
+    for (int i = 0; i < LC; ++i) {
+        lineOff[i] = totL;
+        lineLen[i] = (int)lines[i].size();
+        totL += lines[i].size();
+    }
+    for (int p = 0; p < pc; ++p) {
+        normalize(phrases[p]);
+        phrOff[p] = totP;
+        phrLen[p] = (int)phrases[p].size();
+        totP += phrases[p].size();
+    }
 
-    // 7) Copy constants & buffers to device
-    cudaMemcpyToSymbol(d_lineCount,      &lineCount,      sizeof(int));
-    cudaMemcpyToSymbol(d_phraseCount,    &phraseCount,    sizeof(int));
-    cudaMemcpyToSymbol(d_maxLineTokens,  &maxLineTokens,  sizeof(int));
-    cudaMemcpyToSymbol(d_maxPhraseTokens,&maxPhraseTokens,sizeof(int));
+    std::vector<char> bufL(totL), bufP(totP);
+    for (int i = 0; i < LC; ++i)
+        memcpy(&bufL[lineOff[i]], lines[i].data(), lineLen[i]);
+    for (int p = 0; p < pc; ++p)
+        memcpy(&bufP[phrOff[p]], phrases[p].data(), phrLen[p]);
 
-    int *d_lineTokens,*d_lineLens;
-    int *d_phraseTokens,*d_phraseLens;
-    int *d_counts;
-    size_t lb_b = lb*sizeof(int),
-           pb_b = pb*sizeof(int),
-           ll_b = lineCount*sizeof(int),
-           pl_b = phraseCount*sizeof(int),
-           ct_b = phraseCount*sizeof(int);
+    // — device alloc & copy —
+    char   *dL, *dP;
+    size_t *dLO, *dPO;
+    int    *dLL, *dPL, *dC;
+    cudaMalloc(&dL,  totL);
+    cudaMalloc(&dLO, LC * sizeof(size_t));
+    cudaMalloc(&dLL, LC * sizeof(int));
+    cudaMalloc(&dP,  totP);
+    cudaMalloc(&dPO, pc * sizeof(size_t));
+    cudaMalloc(&dPL, pc * sizeof(int));
+    cudaMalloc(&dC,  pc * sizeof(int));
+    cudaMemset(dC, 0, pc * sizeof(int));
 
-    cudaMalloc(&d_lineTokens, lb_b);
-    cudaMalloc(&d_lineLens,   ll_b);
-    cudaMalloc(&d_phraseTokens,pb_b);
-    cudaMalloc(&d_phraseLens, pl_b);
-    cudaMalloc(&d_counts,     ct_b);
+    cudaMemcpy(dL,  bufL.data(),         totL,             cudaMemcpyHostToDevice);
+    cudaMemcpy(dLO, lineOff.data(),      LC * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(dLL, lineLen.data(),      LC * sizeof(int),    cudaMemcpyHostToDevice);
+    cudaMemcpy(dP,  bufP.data(),         totP,             cudaMemcpyHostToDevice);
+    cudaMemcpy(dPO, phrOff.data(),       pc * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(dPL, phrLen.data(),       pc * sizeof(int),    cudaMemcpyHostToDevice);
 
-    cudaMemcpy(d_lineTokens,   h_lineTokens, lb_b, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_lineLens,     lineLens.data(), ll_b, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_phraseTokens, h_phraseTokens, pb_b, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_phraseLens,   phraseLens.data(), pl_b, cudaMemcpyHostToDevice);
-    cudaMemset(d_counts, 0, ct_b);
-
-    // 8) Determine threads/block & blocks, print it
-    int tpb = (argc>1?atoi(argv[1]):256);
-    if (tpb<1||tpb>1024) tpb = 256;
-    int blocks = (lineCount + tpb - 1) / tpb;
-    printf("Using %d CUDA threads per block and %d blocks\n",
-           tpb, blocks);
-
-    // 9) Launch kernel & time it
-    double t0 = clock() / (double)CLOCKS_PER_SEC;
-    tokenSearchKernel<<<blocks,tpb>>>(
-        d_lineTokens, d_lineLens,
-        d_phraseTokens, d_phraseLens,
-        d_counts
+    // — kernel launch —
+    int blocks = (LC + threadsPerBlock - 1) / threadsPerBlock;
+    clock_t t0 = clock();
+    searchKernel<<<blocks, threadsPerBlock>>>(
+        dL, dLO, dLL,
+        dP, dPO, dPL,
+        LC, pc, dC
     );
     cudaDeviceSynchronize();
-    double t1 = clock() / (double)CLOCKS_PER_SEC;
+    clock_t t1 = clock();
 
-    // 10) Copy back counts & print table
-    int *h_counts = (int*)malloc(ct_b);
-    cudaMemcpy(h_counts, d_counts, ct_b, cudaMemcpyDeviceToHost);
+    // — copy back counts —
+    std::vector<int> counts(pc);
+    cudaMemcpy(counts.data(), dC, pc * sizeof(int), cudaMemcpyDeviceToHost);
 
-    printf("\n+-------------------------------+---------------+\n"
-           "| %-29s | %13s |\n"
-           "+-------------------------------+---------------+\n",
-           "Phrase","Matches");
+    double elapsed = double(t1 - t0) / CLOCKS_PER_SEC;
+    int totalMatches = 0;
 
-    int total = 0;
-    for (int i = 0; i < phraseCount; ++i) {
-        printf("| %-29s | %13d |\n",
-               phraseStrs[i].c_str(), h_counts[i]);
-        total += h_counts[i];
+    // — print results —
+    printf("\n+-------------------------------+---------------+\n");
+    printf("| %-29s | %13s |\n", "Phrase", "Matches");
+    printf("+-------------------------------+---------------+\n");
+    for (int i = 0; i < pc; ++i) {
+        printf("| %-29s | %13d |\n", phrases[i].c_str(), counts[i]);
+        totalMatches += counts[i];
     }
-    printf("+-------------------------------+---------------+\n"
-           "| %-29s | %13d |\n"
-           "+-------------------------------+---------------+\n"
-           "| %-29s | %13.4f |\n"
-           "+-------------------------------+---------------+\n",
-           "Total matches", total,
-           "Elapsed time (s)", t1 - t0);
+    printf("+-------------------------------+---------------+\n");
+    printf("| %-29s | %13d |\n", "Total matches", totalMatches);
+    printf("+-------------------------------+---------------+\n");
+    printf("| %-29s | %13.4f |\n", "Elapsed time (s)", elapsed);
+    printf("+-------------------------------+---------------+\n");
 
-    // 11) CSV logging (omitted for brevity)...
+    // — append to CSV —
+    {
+        static bool header_done = false;
+        std::ofstream csv("results.csv", std::ios::app);
+        if (csv) {
+            if (!header_done) {
+                csv << "timestamp,filename,phrases,total_matches,time_s\n";
+                header_done = true;
+            }
+            time_t now = time(NULL);
+            char tbuf[64];
+            strftime(tbuf, sizeof tbuf, "%Y-%m-%d %H:%M:%S", localtime(&now));
+            csv << '"' << tbuf << "\",\""
+                << filepath << "\",\"";
+            for (int i = 0; i < pc; ++i) {
+                if (i) csv << ';';
+                csv << phrases[i];
+            }
+            csv << "\"," << totalMatches << ',' << elapsed << "\n";
+        }
+    }
 
-    // 12) Cleanup
-    cudaFree(d_lineTokens);
-    cudaFree(d_lineLens);
-    cudaFree(d_phraseTokens);
-    cudaFree(d_phraseLens);
-    cudaFree(d_counts);
-    free(h_lineTokens);
-    free(h_phraseTokens);
-    free(h_counts);
+    // — cleanup —
+    cudaFree(dL);
+    cudaFree(dLO);
+    cudaFree(dLL);
+    cudaFree(dP);
+    cudaFree(dPO);
+    cudaFree(dPL);
+    cudaFree(dC);
 
     return 0;
 }

@@ -64,3 +64,13 @@ timestamp,filename,phrases,total_matches,time_s
 "2025-07-19 05:10:46","test.txt","will;this;is",5289,0.0242
 timestamp,filename,phrases,total_matches,time_s
 "2025-07-19 05:11:16","test.txt","will;this;is",5289,0.0151
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-19 10:38:04","test.txt","will;this;is",12761,0.056954
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-19 10:40:21","test.txt","will;this;is",12761,0.016317
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-19 10:40:44","test.txt","will;this;is",12761,0.016096
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-19 10:41:03","test.txt","will;this;is",12761,0.018395
+timestamp,filename,phrases,total_matches,time_s
+"2025-07-19 10:41:26","test.txt","will;this;is",12761,0.016201
